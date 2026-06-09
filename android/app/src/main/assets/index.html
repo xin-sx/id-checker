@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta name="theme-color" content="#1e3a6f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%231e3a6f'/><text x='256' y='320' font-size='280' text-anchor='middle' fill='white'>🆔</text></svg>">
+  <title>身份证泄露查询 · 随机生成</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', 'Noto Sans SC', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(145deg, #f0f4f8 0%, #dde5ed 100%);
+      color: #1a2e4b;
+      padding: 16px;
+      padding-bottom: 100px;
+    }
+
+    .header {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #1e3a6f;
+      margin-bottom: 6px;
+    }
+
+    .header p {
+      font-size: 0.85rem;
+      color: #5a6b7f;
+    }
+
+    .tab-container {
+      display: flex;
+      background: rgba(255,255,255,0.8);
+      border-radius: 16px;
+      padding: 4px;
+      margin: 16px 0;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      background: transparent;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #5a6b7f;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .tab-btn.active {
+      background: #1e3a6f;
+      color: white;
+      box-shadow: 0 4px 12px rgba(30,58,111,0.3);
+    }
+
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+
+    .card-title {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #1e3a6f;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .input-label {
+      font-size: 0.8rem;
+      color: #5a6b7f;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .id-input-wrapper {
+      display: flex;
+      align-items: center;
+      background: #f8faff;
+      border: 2px solid #d9e0eb;
+      border-radius: 16px;
+      padding: 4px 4px 4px 16px;
+      transition: border 0.2s;
+    }
+
+    .id-input-wrapper:focus-within {
+      border-color: #1e3a6f;
+      box-shadow: 0 0 0 3px rgba(30,58,111,0.1);
+    }
+
+    .id-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 1.3rem;
+      font-weight: 600;
+      font-family: 'SF Mono', 'Menlo', 'Monaco', monospace;
+      letter-spacing: 2px;
+      padding: 14px 8px;
+      color: #0b1c2e;
+    }
+
+    .id-input::placeholder {
+      font-size: 0.9rem;
+      font-weight: 400;
+      letter-spacing: 1px;
+      color: #a6b8cc;
+    }
+
+    .btn {
+      border: none;
+      background: #1e3a6f;
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 14px 24px;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(30,58,111,0.25);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn:hover {
+      background: #122b51;
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: #e8ecf4;
+      color: #1e3a6f;
+      box-shadow: none;
+    }
+
+    .btn-secondary:hover {
+      background: #dde3ed;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .btn-success {
+      background: #28a745;
+    }
+
+    .btn-success:hover {
+      background: #218838;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .result-box {
+      padding: 16px;
+      border-radius: 16px;
+      margin-top: 16px;
+      text-align: center;
+      font-weight: 500;
+      display: none;
+    }
+
+    .result-box.show {
+      display: block;
+    }
+
+    .result-safe {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .result-leaked {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .result-info {
+      background: #cce5ff;
+      color: #004085;
+      border: 1px solid #b8daff;
+    }
+
+    .leaked-info {
+      margin-top: 12px;
+      padding: 12px;
+      background: rgba(220,53,69,0.1);
+      border-radius: 12px;
+      font-size: 0.9rem;
+    }
+
+    .leaked-info div {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px dashed rgba(220,53,69,0.2);
+    }
+
+    .leaked-info div:last-child {
+      border-bottom: none;
+    }
+
+    .leaked-info span:first-child {
+      color: #5a6b7f;
+    }
+
+    .leaked-info span:last-child {
+      font-weight: 600;
+      color: #1a2e4b;
+    }
+
+    .segment-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .segment-input {
+      background: #f8faff;
+      border: 1px solid #d9e0eb;
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .segment-input label {
+      font-size: 0.75rem;
+      color: #5a6b7f;
+      font-weight: 500;
+    }
+
+    .segment-input input {
+      border: none;
+      outline: none;
+      background: white;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: monospace;
+      color: #1e3a6f;
+    }
+
+    .segment-input input:focus {
+      box-shadow: 0 0 0 2px rgba(30,58,111,0.2);
+    }
+
+    .generated-id {
+      background: linear-gradient(135deg, #1e3a6f 0%, #2b4a7f 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 16px;
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 700;
+      font-family: 'SF Mono', 'Menlo', 'Monaco', monospace;
+      letter-spacing: 3px;
+      margin-bottom: 16px;
+      word-break: break-all;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(30,58,111,0.3);
+    }
+
+    .disclaimer {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-top: 16px;
+      font-size: 0.8rem;
+      color: #856404;
+      text-align: center;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e8ecf4;
+      border-top-color: #1e3a6f;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .stats-bar {
+      background: #f8faff;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-around;
+      font-size: 0.85rem;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #1e3a6f;
+    }
+
+    .stat-label {
+      color: #5a6b7f;
+      font-size: 0.75rem;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .history-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 12px;
+    }
+
+    .history-item {
+      padding: 10px 12px;
+      background: #f8faff;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .history-item span:first-child {
+      font-family: monospace;
+      font-weight: 600;
+      color: #1e3a6f;
+    }
+
+    .history-item span:last-child {
+      font-size: 0.75rem;
+      color: #5a6b7f;
+    }
+
+    .copy-btn {
+      background: none;
+      border: none;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: #1e3a6f;
+    }
+
+    @media (max-width: 380px) {
+      .segment-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🆔 身份证查询生成器</h1>
+    <p>泄露查询 · 随机生成 · 合规校验</p>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-value" id="dbCount">72,749</div>
+      <div class="stat-label">数据库总量</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="checkedCount">0</div>
+      <div class="stat-label">已查询次数</div>
+    </div>
+  </div>
+
+  <div class="tab-container">
+    <button class="tab-btn active" data-tab="check">🔍 泄露查询</button>
+    <button class="tab-btn" data-tab="generate">✨ 随机生成</button>
+  </div>
+
+  <!-- 泄露查询 -->
+  <div class="tab-content active" id="checkTab">
+    <div class="card">
+      <div class="card-title">📋 输入身份证号查询泄露</div>
+      <div class="input-group">
+        <div class="id-input-wrapper">
+          <input type="text" class="id-input" id="checkInput" placeholder="请输入18位身份证号" maxlength="18" autocomplete="off">
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn" id="checkBtn">🔍 查询泄露</button>
+        <button class="btn btn-secondary" id="clearCheckBtn">🗑️ 清除</button>
+      </div>
+      <div class="result-box" id="checkResult"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📜 查询历史</div>
+      <div class="history-list" id="checkHistory">
+        <div style="text-align:center;color:#a6b8cc;padding:20px;">暂无查询记录</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 随机生成 -->
+  <div class="tab-content" id="generateTab">
+    <div class="card">
+      <div class="card-title">⚙️ 自定义生成规则（可选修改）</div>
+      <div class="segment-grid">
+        <div class="segment-input">
+          <label>① 省份码 (1-2位)</label>
+          <input type="text" id="seg1" value="11" maxlength="2" placeholder="11-65">
+        </div>
+        <div class="segment-input">
+          <label>② 城市码 (3-4位)</label>
+          <input type="text" id="seg2" value="01" maxlength="2" placeholder="01-90">
+        </div>
+        <div class="segment-input">
+          <label>③ 区县码 (5-6位)</label>
+          <input type="text" id="seg3" value="01" maxlength="2" placeholder="01-99">
+        </div>
+        <div class="segment-input">
+          <label>④ 出生年 (7-10位)</label>
+          <input type="text" id="seg4" value="1990" maxlength="4" placeholder="年份">
+        </div>
+        <div class="segment-input">
+          <label>⑤ 出生月 (11-12位)</label>
+          <input type="text" id="seg5" value="" maxlength="2" placeholder="01-12">
+        </div>
+        <div class="segment-input">
+          <label>⑥ 出生日 (13-14位)</label>
+          <input type="text" id="seg6" value="" maxlength="2" placeholder="01-31">
+        </div>
+        <div class="segment-input">
+          <label>⑦ 顺序码 (15-16位)</label>
+          <input type="text" id="seg7" value="" maxlength="2" placeholder="00-99">
+        </div>
+        <div class="segment-input">
+          <label>⑧ 性别码 (17位)</label>
+          <input type="text" id="seg8" value="" maxlength="1" placeholder="0-9">
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-success" id="generateBtn">✨ 完全随机生成</button>
+        <button class="btn" id="customGenerateBtn">⚡ 按规则生成</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎯 生成的身份证号</div>
+      <div class="generated-id" id="generatedId">点击上方按钮生成</div>
+      <div class="btn-group">
+        <button class="btn" id="copyBtn">📋 复制号码</button>
+        <button class="btn btn-secondary" id="regenerateBtn">🔄 重新生成</button>
+        <button class="btn btn-danger" id="checkLeakedBtn">🔍 查询是否泄露</button>
+      </div>
+      <div class="disclaimer">
+        ⚠️ 随机生成号码均为假 · 如有雷同纯属巧合 · 仅供测试使用
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📜 生成历史</div>
+      <div class="history-list" id="generateHistory">
+        <div style="text-align:center;color:#a6b8cc;padding:20px;">暂无生成记录</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div>正在加载数据库...</div>
+  </div>
+
+  <script>
+    // Embedded sample database (full database loaded separately)
+    const SAMPLE_IDS = [
+      "许林科----41110219650519051X",
+      "陆勇军----330127198710243719",
+      "翟文霞----410105197110229021",
+      "兰书明----372401195408064419",
+      "王显杰----342427197310261518",
+      "牛倩倩----340122198708147664",
+      "叶正强----340826197504257916",
+      "孙蕾蕾----340421198009200024",
+      "曹向国----230102197208080015",
+      "刘晓光----220204195601290032"
+    ];
+
+    (function() {
+      'use strict';
+
+      // State
+      let idDatabase = new Map();
+      let checkCount = parseInt(localStorage.getItem('checkCount') || '0');
+      let checkHistory = JSON.parse(localStorage.getItem('checkHistory') || '[]');
+      let generateHistory = JSON.parse(localStorage.getItem('generateHistory') || '[]');
+      let dbLoaded = false;
+
+      // Elements
+      const loading = document.getElementById('loading');
+      const dbCountEl = document.getElementById('dbCount');
+      const checkedCountEl = document.getElementById('checkedCount');
+      const checkInput = document.getElementById('checkInput');
+      const checkBtn = document.getElementById('checkBtn');
+      const clearCheckBtn = document.getElementById('clearCheckBtn');
+      const checkResult = document.getElementById('checkResult');
+      const checkHistoryEl = document.getElementById('checkHistory');
+      const generatedIdEl = document.getElementById('generatedId');
+      const generateBtn = document.getElementById('generateBtn');
+      const customGenerateBtn = document.getElementById('customGenerateBtn');
+      const copyBtn = document.getElementById('copyBtn');
+      const regenerateBtn = document.getElementById('regenerateBtn');
+      const checkLeakedBtn = document.getElementById('checkLeakedBtn');
+      const generateHistoryEl = document.getElementById('generateHistory');
+
+      // Initialize sample IDs
+      for (const line of SAMPLE_IDS) {
+        const parts = line.split('----');
+        if (parts.length === 2) {
+          const name = parts[0].trim();
+          const id = parts[1].trim();
+          if (id.length === 18) {
+            idDatabase.set(id, name);
+          }
+        }
+      }
+
+      // Tab switching
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById(btn.dataset.tab + 'Tab').classList.add('active');
+        });
+      });
+
+      // Load full database from IndexedDB or cache
+      async function loadDatabase() {
+        loading.classList.add('show');
+        try {
+          // Try to load from cache/localStorage
+          const cachedData = localStorage.getItem('idDatabase');
+          if (cachedData) {
+            const parsed = JSON.parse(cachedData);
+            for (const [id, name] of Object.entries(parsed)) {
+              idDatabase.set(id, name);
+            }
+            dbLoaded = true;
+            dbCountEl.textContent = idDatabase.size.toLocaleString();
+          }
+
+          // Try to load from file
+          try {
+            const response = await fetch('./id_database.txt');
+            if (response.ok) {
+              const text = await response.text();
+              const lines = text.split('\n');
+              let count = 0;
+              for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || trimmed.startsWith('by ')) continue;
+                const parts = trimmed.split('----');
+                if (parts.length === 2) {
+                  const name = parts[0].trim();
+                  const id = parts[1].trim();
+                  if (id.length === 18) {
+                    idDatabase.set(id, name);
+                    count++;
+                  }
+                }
+              }
+              dbCountEl.textContent = idDatabase.size.toLocaleString();
+              console.log('✅ 数据库加载完成: ' + idDatabase.size + ' 条记录');
+            }
+          } catch (e) {
+            console.log('📦 使用内置样本数据库 (' + idDatabase.size + ' 条)');
+          }
+        } catch (e) {
+          console.error('数据库加载失败:', e);
+        }
+        loading.classList.remove('show');
+      }
+
+      // Validate ID card
+      function validateIdCard(id) {
+        if (!id || id.length !== 18) return { valid: false, error: '身份证号必须为18位' };
+
+        const province = parseInt(id.substring(0, 2));
+        if (province < 11 || province > 65) return { valid: false, error: '省份码无效' };
+
+        const city = parseInt(id.substring(2, 4));
+        if (city < 1 || city > 90) return { valid: false, error: '城市码无效' };
+
+        const district = parseInt(id.substring(4, 6));
+        if (district < 1 || district > 99) return { valid: false, error: '区县码无效' };
+
+        const year = parseInt(id.substring(6, 10));
+        const currentYear = new Date().getFullYear();
+        if (year < 1900 || year > currentYear) return { valid: false, error: '出生年份无效' };
+
+        const month = parseInt(id.substring(10, 12));
+        if (month < 1 || month > 12) return { valid: false, error: '月份无效' };
+
+        const day = parseInt(id.substring(12, 14));
+        const maxDay = new Date(year, month, 0).getDate();
+        if (day < 1 || day > maxDay) return { valid: false, error: '日期无效' };
+
+        // Check digit
+        const factors = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
+        const checkCodes = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'];
+        let sum = 0;
+        for (let i = 0; i < 17; i++) {
+          sum += parseInt(id[i]) * factors[i];
+        }
+        const checkCode = checkCodes[sum % 11];
+        if (id[17].toUpperCase() !== checkCode) {
+          return { valid: false, error: '校验位错误' };
+        }
+
+        return { valid: true };
+      }
+
+      // Check if ID is leaked
+      function checkLeak(id) {
+        if (idDatabase.has(id)) {
+          return { leaked: true, name: idDatabase.get(id) };
+        }
+        return { leaked: false };
+      }
+
+      // Update check result display
+      function showCheckResult(result) {
+        if (!result.valid) {
+          checkResult.className = 'result-box show result-info';
+          checkResult.innerHTML = `❌ ${result.error}`;
+        } else {
+          const leakResult = checkLeak(result.id);
+          if (leakResult.leaked) {
+            checkResult.className = 'result-box show result-leaked';
+            checkResult.innerHTML = `
+              <div>⚠️ 该身份证号已泄露!</div>
+              <div class="leaked-info">
+                <div><span>身份证号</span><span>${result.id}</span></div>
+                <div><span>对应姓名</span><span>${leakResult.name}</span></div>
+              </div>
+            `;
+            addToCheckHistory(result.id, leakResult.name);
+          } else {
+            checkResult.className = 'result-box show result-safe';
+            checkResult.innerHTML = '✅ 该身份证号未在泄露库中';
+            addToCheckHistory(result.id, null);
+          }
+        }
+      }
+
+      // Add to check history
+      function addToCheckHistory(id, leakedName) {
+        checkCount++;
+        localStorage.setItem('checkCount', checkCount);
+        checkedCountEl.textContent = checkCount;
+
+        checkHistory.unshift({
+          id: id,
+          name: leakedName,
+          time: new Date().toLocaleTimeString()
+        });
+
+        if (checkHistory.length > 20) checkHistory = checkHistory.slice(0, 20);
+        localStorage.setItem('checkHistory', JSON.stringify(checkHistory));
+        renderCheckHistory();
+      }
+
+      // Render check history
+      function renderCheckHistory() {
+        if (checkHistory.length === 0) {
+          checkHistoryEl.innerHTML = '<div style="text-align:center;color:#a6b8cc;padding:20px;">暂无查询记录</div>';
+          return;
+        }
+
+        checkHistoryEl.innerHTML = checkHistory.map(item => `
+          <div class="history-item">
+            <span>${item.id}</span>
+            <span>${item.time}</span>
+          </div>
+        `).join('');
+      }
+
+      // Check button click
+      checkBtn.addEventListener('click', () => {
+        const id = checkInput.value.trim().toUpperCase();
+        const result = validateIdCard(id);
+        result.id = id;
+        showCheckResult(result);
+      });
+
+      // Enter key on check input
+      checkInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          checkBtn.click();
+        }
+      });
+
+      // Clear check
+      clearCheckBtn.addEventListener('click', () => {
+        checkInput.value = '';
+        checkResult.className = 'result-box';
+      });
+
+      // Random ID generator
+      function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function pad(num, len) {
+        return num.toString().padStart(len, '0');
+      }
+
+      function getDaysInMonth(year, month) {
+        return new Date(year, month, 0).getDate();
+      }
+
+      function generateRandomId(preserve) {
+        const currentYear = new Date().getFullYear();
+        const minYear = currentYear - 99;
+
+        // Get user input values
+        const seg1 = document.getElementById('seg1').value.trim();
+        const seg2 = document.getElementById('seg2').value.trim();
+        const seg3 = document.getElementById('seg3').value.trim();
+        const seg4 = document.getElementById('seg4').value.trim();
+        const seg5 = document.getElementById('seg5').value.trim();
+        const seg6 = document.getElementById('seg6').value.trim();
+        const seg7 = document.getElementById('seg7').value.trim();
+        const seg8 = document.getElementById('seg8').value.trim();
+
+        // Build ID parts
+        let year = preserve && preserve.year;
+        let month = preserve && preserve.month;
+        let day = preserve && preserve.day;
+
+        if (!year) {
+          year = seg4 ? parseInt(seg4) : randomInt(minYear, currentYear);
+        }
+        if (!month) {
+          month = seg5 ? parseInt(seg5) : randomInt(1, 12);
+        }
+        if (!day) {
+          const maxDay = getDaysInMonth(year, month);
+          day = seg6 ? parseInt(seg6) : randomInt(1, maxDay);
+        }
+
+        const part1 = seg1 ? pad(parseInt(seg1), 2) : pad(randomInt(11, 65), 2);
+        const part2 = seg2 ? pad(parseInt(seg2), 2) : pad(randomInt(1, 90), 2);
+        const part3 = seg3 ? pad(parseInt(seg3), 2) : pad(randomInt(1, 99), 2);
+        const part4 = year.toString();
+        const part5 = pad(month, 2);
+        const part6 = pad(day, 2);
+        const part7 = seg7 ? pad(parseInt(seg7), 2) : pad(randomInt(0, 99), 2);
+        const part8 = seg8 ? seg8[0] : randomInt(0, 9).toString();
+
+        // Calculate check digit
+        const factors = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
+        const checkCodes = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'];
+        const rawId = part1 + part2 + part3 + part4 + part5 + part6 + part7 + part8;
+        let sum = 0;
+        for (let i = 0; i < 17; i++) {
+          sum += parseInt(rawId[i]) * factors[i];
+        }
+        const part9 = checkCodes[sum % 11];
+
+        return rawId + part9;
+      }
+
+      function displayGeneratedId(id) {
+        generatedIdEl.textContent = id;
+        generatedIdEl.style.animation = 'none';
+        setTimeout(() => {
+          generatedIdEl.style.animation = 'fadeIn 0.3s ease';
+        }, 10);
+      }
+
+      // Generate button click
+      generateBtn.addEventListener('click', () => {
+        const id = generateRandomId();
+        displayGeneratedId(id);
+        addToGenerateHistory(id);
+      });
+
+      // Custom generate button click
+      customGenerateBtn.addEventListener('click', () => {
+        const id = generateRandomId();
+        displayGeneratedId(id);
+        addToGenerateHistory(id);
+      });
+
+      // Regenerate button click
+      regenerateBtn.addEventListener('click', () => {
+        const id = generateRandomId();
+        displayGeneratedId(id);
+        addToGenerateHistory(id);
+      });
+
+      // Copy button click
+      copyBtn.addEventListener('click', async () => {
+        const id = generatedIdEl.textContent;
+        if (id && id.length === 18) {
+          try {
+            await navigator.clipboard.writeText(id);
+            const original = copyBtn.textContent;
+            copyBtn.textContent = '✅ 已复制';
+            setTimeout(() => { copyBtn.textContent = original; }, 1500);
+          } catch (e) {
+            const textarea = document.createElement('textarea');
+            textarea.value = id;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            copyBtn.textContent = '✅ 已复制';
+            setTimeout(() => { copyBtn.textContent = '📋 复制号码'; }, 1500);
+          }
+        }
+      });
+
+      // Check if generated ID is leaked
+      checkLeakedBtn.addEventListener('click', () => {
+        const id = generatedIdEl.textContent;
+        if (id && id.length === 18) {
+          document.querySelector('[data-tab="check"]').click();
+          checkInput.value = id;
+          checkBtn.click();
+        }
+      });
+
+      // Add to generate history
+      function addToGenerateHistory(id) {
+        generateHistory.unshift({
+          id: id,
+          time: new Date().toLocaleTimeString()
+        });
+
+        if (generateHistory.length > 20) generateHistory = generateHistory.slice(0, 20);
+        localStorage.setItem('generateHistory', JSON.stringify(generateHistory));
+        renderGenerateHistory();
+      }
+
+      // Render generate history
+      function renderGenerateHistory() {
+        if (generateHistory.length === 0) {
+          generateHistoryEl.innerHTML = '<div style="text-align:center;color:#a6b8cc;padding:20px;">暂无生成记录</div>';
+          return;
+        }
+
+        generateHistoryEl.innerHTML = generateHistory.map(item => `
+          <div class="history-item">
+            <span>${item.id}</span>
+            <span>${item.time}</span>
+          </div>
+        `).join('');
+      }
+
+      // Initialize
+      function init() {
+        loadDatabase();
+        renderCheckHistory();
+        renderGenerateHistory();
+        checkedCountEl.textContent = checkCount;
+
+        const style = document.createElement('style');
+        style.textContent = `
+          @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+          }
+        `;
+        document.head.appendChild(style);
+
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('./sw-pwa.js')
+            .then(reg => console.log('✅ PWA 已启用'))
+            .catch(err => console.log('⚠️ PWA 注册失败:', err));
+        }
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
